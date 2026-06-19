@@ -1,0 +1,49 @@
+# =============================================================================
+# Seller & Identity Service — Local Development Profile
+# =============================================================================
+# Activate: SPRING_PROFILES_ACTIVE=local
+# Requires: PostgreSQL running on localhost:5432 with database 'identity_db'
+# =============================================================================
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/identity_db
+    username: postgres
+    password: root
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+
+  flyway:
+    enabled: true
+
+# --- Server ---
+server:
+  port: 8081
+
+# --- Actuator (expose all for debugging) ---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+# --- Logging (verbose) ---
+logging:
+  level:
+    com.marketplace.selleridentity: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.flywaydb: DEBUG
+    com.zaxxer.hikari: DEBUG
