@@ -1,5 +1,6 @@
 package com.marketplace.selleridentity.auth.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -7,28 +8,18 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * Temporary security configuration for development phase.
- *
- * <p>Permits all requests without authentication to enable:
- * <ul>
- *   <li>Local development and manual API testing</li>
- *   <li>Swagger UI access at /swagger-ui/**</li>
- *   <li>Actuator health/metrics access</li>
- * </ul>
- *
- * <p><strong>TODO:</strong> Replace with JWT-based security when authentication
- * layer is implemented. This class will be refactored to:
- * <ul>
- *   <li>Validate JWT tokens on protected endpoints</li>
- *   <li>Enforce role-based access control</li>
- *   <li>Keep Swagger/actuator publicly accessible or behind admin role</li>
- * </ul>
+ * Security configuration with JWT-based authentication.
+ * Public endpoints are explicitly listed; everything else requires a valid JWT.
  */
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -36,15 +27,27 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(401);
+                            response.setContentType("application/json");
+                            response.getWriter().write(
+                                    "{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Authentication required\"}");
+                        })
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/api/v1/users/register",
+                                "/api/v1/verifications/**",
+                                "/api/v1/auth/login",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
-                                "/actuator/**"
+                                "/actuator/health"
                         ).permitAll()
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
                 )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }
