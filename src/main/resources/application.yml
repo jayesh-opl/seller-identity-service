@@ -93,3 +93,9 @@ logging:
     org.flywaydb: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId:-}] %logger{36} - %msg%n"
+
+# --- JWT ---
+app:
+  jwt:
+    secret: change-me-in-production-minimum-32-characters
+    expiration-seconds: 3600
