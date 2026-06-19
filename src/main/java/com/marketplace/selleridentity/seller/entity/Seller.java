@@ -69,34 +69,39 @@ public class Seller extends BaseEntity {
     }
 
     // =========================================================================
-    // Domain Behavior
+    // Domain Behavior — Lifecycle Transitions
     // =========================================================================
 
+    /**
+     * Approves the seller application.
+     * Only valid from PENDING_APPROVAL.
+     */
     public void approve() {
         if (this.status != SellerStatus.PENDING_APPROVAL) {
-            throw new IllegalStateException("Cannot approve seller in status: " + this.status);
+            throw new IllegalStateException("Invalid seller status transition");
         }
         this.status = SellerStatus.ACTIVE;
     }
 
+    /**
+     * Rejects the seller application.
+     * Only valid from PENDING_APPROVAL. Terminal state.
+     */
     public void reject() {
         if (this.status != SellerStatus.PENDING_APPROVAL) {
-            throw new IllegalStateException("Cannot reject seller in status: " + this.status);
+            throw new IllegalStateException("Invalid seller status transition");
         }
         this.status = SellerStatus.REJECTED;
     }
 
+    /**
+     * Suspends an active seller due to policy violation or admin action.
+     * Only valid from ACTIVE.
+     */
     public void suspend() {
         if (this.status != SellerStatus.ACTIVE) {
-            throw new IllegalStateException("Cannot suspend seller in status: " + this.status);
+            throw new IllegalStateException("Invalid seller status transition");
         }
         this.status = SellerStatus.SUSPENDED;
-    }
-
-    public void reinstate() {
-        if (this.status != SellerStatus.SUSPENDED) {
-            throw new IllegalStateException("Cannot reinstate seller in status: " + this.status);
-        }
-        this.status = SellerStatus.ACTIVE;
     }
 }
